@@ -1,0 +1,55 @@
+class Goomba(arcade.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.scale = ENEMY_SCALING
+        self.idle = arcade.load_texture_pair(f"enemies/goomba_0.png")
+        self.walk_textures = []
+        for i in range(2):
+            texture = arcade.load_texture_pair(f"enemies/goomba_{i}.png")
+            self.walk_textures.append(texture)
+        self.texture = self.idle
+        self.character_face_direction = LEFT_FACING
+        self.cur_texture = 0
+        self.x_odometer = 0
+
+    def pymunk_moved(self, physics_engine, dx, dy, d_angle):
+        if dx < -DEAD_ZONE and self.character_face_direction == RIGHT_FACING:
+            self.character_face_direction = LEFT_FACING
+            self.texture = self.walk_textures[self.character_face_direction]
+        elif dx > DEAD_ZONE and self.character_face_direction == LEFT_FACING:
+            self.character_face_direction = RIGHT_FACING
+            self.texture = self.walk_textures[self.character_face_direction]
+
+        if abs(self.x_odometer) > DISTANCE_TO_CHANGE_TEXTURE:
+
+            self.x_odometer = 0
+
+            self.cur_texture += 1
+            if self.cur_texture > 2:
+                self.cur_texture = 0
+            self.texture = self.walk_textures[self.cur_texture][self.character_face_direction]
+
+        is_on_ground = physics_engine.is_on_ground(self)
+
+        self.x_odometer += dx
+
+        if not is_on_ground:
+            if dy > DEAD_ZONE:
+                self.texture = self.walk_textures[self.character_face_direction]
+                return
+            elif dy < -DEAD_ZONE:
+                self.texture = self.walk_textures[self.character_face_direction]
+                return
+
+        if abs(dx) <= DEAD_ZONE:
+            self.texture = self.walk_textures[self.character_face_direction]
+            return
+
+        if abs(self.x_odometer) > DISTANCE_TO_CHANGE_TEXTURE:
+
+            self.x_odometer = 0
+
+            self.cur_texture += 1
+            if self.cur_texture > 2:
+                self.cur_texture = 0
+            self.texture = self.walk_textures[self.cur_texture][self.character_face_direction]
